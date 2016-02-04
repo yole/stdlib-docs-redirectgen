@@ -1,8 +1,11 @@
 package org.jetbrains.kotlin.stdlibDocsRedirectGen
 
 import java.io.File
+import java.io.FileOutputStream
 import java.io.FileWriter
 import java.util.*
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 
 fun loadFiles(dir: String, target: MutableCollection<File>) {
     val dirFile = File(dir)
@@ -64,19 +67,35 @@ fun main(args: Array<String>) {
     val oldFiles = LinkedHashSet<File>().apply { args.drop(1).map { arg -> loadFiles(arg, this )}}
     oldFiles.removeAll(latestFiles)
 
+    val redirectMap = oldFiles.map {
+        it.path.replace(".md", ".html") to findMapping(it, simpleNameMap[it.name] ?: emptyList())?.path?.replace(".md", ".html").orEmpty()
+    }.filter { it.second.isNotEmpty() }
+
+    writeRoutingRules(redirectMap)
+    writeRedirectPages(redirectMap)
+}
+
+private fun writeRedirectPages(redirects: List<Pair<String, String>>) {
+    ZipOutputStream(FileOutputStream("redirects.zip")).use { redirectOutputStream ->
+        for ((oldFile, mapping) in redirects) {
+            redirectOutputStream.putNextEntry(ZipEntry("api/latest/jvm/stdlib/$oldFile"))
+            redirectOutputStream.writer().write("<html><head><meta http-equiv=\"refresh\" content=\"0; url=https://kotlinlang.org/api/latest/jvm/stdlib/$mapping\" /></head></html>")
+        }
+    }
+}
+
+private fun writeRoutingRules(redirects: List<Pair<String, String>>) {
     FileWriter(File("routingrules.xml")).use { output ->
         output.appendln("<RoutingRules>")
 
-        for (oldFile in oldFiles) {
-            val mapping = findMapping(oldFile, simpleNameMap[oldFile.name] ?: emptyList())
-            if (mapping != null) {
-                output.appendln("  <RoutingRule>")
-                output.appendln("    <Condition><KeyPrefixEquals>api/latest/jvm/stdlib/${oldFile.path}</KeyPrefixEquals></Condition>")
-                output.appendln("    <Redirect><HostName>kotlinlang.org</HostName><ReplaceKeyWith>api/latest/jvm/stdlib/${mapping.path}</ReplaceKeyWith></Redirect>")
-                output.appendln("  </RoutingRule>")
-            }
+        for ((oldFile, mapping) in redirects) {
+            output.appendln("  <RoutingRule>")
+            output.appendln("    <Condition><KeyPrefixEquals>api/latest/jvm/stdlib/$oldFile</KeyPrefixEquals></Condition>")
+            output.appendln("    <Redirect><HostName>kotlinlang.org</HostName><ReplaceKeyWith>api/latest/jvm/stdlib/$mapping</ReplaceKeyWith></Redirect>")
+            output.appendln("  </RoutingRule>")
         }
 
         output.appendln("</RoutingRules>")
     }
 }
+
