@@ -93,7 +93,10 @@ private fun writeRedirectPages(redirects: List<Pair<String, String>>) {
     ZipOutputStream(FileOutputStream("redirects.zip")).use { redirectOutputStream ->
         for ((oldFile, mapping) in redirects) {
             redirectOutputStream.putNextEntry(ZipEntry("api/latest/jvm/stdlib/$oldFile"))
-            redirectOutputStream.writer().write("<html><head><meta http-equiv=\"refresh\" content=\"0; url=https://kotlinlang.org/api/latest/jvm/stdlib/$mapping\" /></head></html>")
+            with(redirectOutputStream.writer()) {
+                write("<html><head><meta http-equiv=\"refresh\" content=\"0; url=https://kotlinlang.org/api/latest/jvm/stdlib/$mapping\" /></head></html>")
+                flush()
+            }
         }
     }
 }
