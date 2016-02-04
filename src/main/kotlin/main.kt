@@ -6,6 +6,7 @@ import java.io.FileWriter
 import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.system.exitProcess
 
 fun loadFiles(dir: String, target: MutableCollection<File>) {
     val dirFile = File(dir)
@@ -63,13 +64,28 @@ fun main(args: Array<String>) {
     }
 
     val latestFiles = LinkedHashSet<File>().apply { loadFiles(args[0], this) }
+    println("Loaded ${latestFiles.size} latest files")
     val simpleNameMap = latestFiles.groupBy { it.name }
-    val oldFiles = LinkedHashSet<File>().apply { args.drop(1).map { arg -> loadFiles(arg, this )}}
+    val oldFiles = LinkedHashSet<File>().apply { args.drop(1).map { arg ->
+        if (!File(arg).isDirectory) {
+            println("Invalid directory specified: $arg")
+            exitProcess(1)
+        }
+        loadFiles(arg, this )}
+    }
+    println("Loaded ${oldFiles.size} old files")
     oldFiles.removeAll(latestFiles)
 
     val redirectMap = oldFiles.map {
         it.path.replace(".md", ".html") to findMapping(it, simpleNameMap[it.name] ?: emptyList())?.path?.replace(".md", ".html").orEmpty()
     }.filter { it.second.isNotEmpty() }
+
+    if (redirectMap.isEmpty()) {
+        println("Could not find any redirects")
+        exitProcess(1)
+    }
+
+    println("Writing ${redirectMap.size} redirects")
 
     writeRoutingRules(redirectMap)
     writeRedirectPages(redirectMap)
