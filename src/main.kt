@@ -41,6 +41,7 @@ fun findMapping(oldFile: File, filesWithMatchingName: Collection<File>): File? {
         ?: match("kotlin/*/*", "kotlin.collections/$1/$2")
         ?: match("kotlin/*/*", "kotlin.text/$1/$2")
         ?: match("kotlin/*/*", "kotlin.sequences/$1/$2")
+        ?: match("kotlin/*/*", "kotlin.ranges/$1/$2")
         ?: match("*/-floating-point-constants/*", "kotlin/-double/$2")
         ?: match("*/-integer-constants/*", "kotlin/-int/$2")
         ?: match("kotlin/-extension/*", "kotlin/-extension-function-type/$2")
