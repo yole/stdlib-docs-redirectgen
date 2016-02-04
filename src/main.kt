@@ -72,7 +72,7 @@ fun main(args: Array<String>) {
             if (mapping != null) {
                 output.appendln("  <RoutingRule>")
                 output.appendln("    <Condition><KeyPrefixEquals>api/latest/jvm/stdlib/${oldFile.path}</KeyPrefixEquals></Condition>")
-                output.appendln("    <Redirect><ReplaceKeyWith>api/latest/jvm/stdlib/${mapping.path}</ReplaceKeyWith></Redirect>")
+                output.appendln("    <Redirect><HostName>kotlinlang.org</HostName><ReplaceKeyWith>api/latest/jvm/stdlib/${mapping.path}</ReplaceKeyWith></Redirect>")
                 output.appendln("  </RoutingRule>")
             }
         }
