@@ -15,7 +15,7 @@ mainClassName = "org.jetbrains.kotlin.stdlibDocsRedirectGen.MainKt"
 
 run {
     if(System.getProperty("exec.args") != null) {
-        args System.getProperty("exec.args").split()
+        args System.getProperty("exec.args").replaceAll("\"", "").split()
     }
 }
 

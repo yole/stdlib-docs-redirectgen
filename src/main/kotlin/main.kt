@@ -10,6 +10,10 @@ import kotlin.system.exitProcess
 
 fun loadFiles(dir: String, target: MutableCollection<File>) {
     val dirFile = File(dir)
+    if (!dirFile.isDirectory) {
+        println("$dir is not a directory")
+        exitProcess(1)
+    }
     File(dir).walk().filter { !it.isDirectory }.map { it.relativeTo(dirFile) }.toCollection(target)
 }
 
@@ -66,13 +70,7 @@ fun main(args: Array<String>) {
     val latestFiles = LinkedHashSet<File>().apply { loadFiles(args[0], this) }
     println("Loaded ${latestFiles.size} latest files")
     val simpleNameMap = latestFiles.groupBy { it.name }
-    val oldFiles = LinkedHashSet<File>().apply { args.drop(1).map { arg ->
-        if (!File(arg).isDirectory) {
-            println("Invalid directory specified: $arg")
-            exitProcess(1)
-        }
-        loadFiles(arg, this )}
-    }
+    val oldFiles = LinkedHashSet<File>().apply { args.drop(1).map { arg -> loadFiles(arg, this )} }
     println("Loaded ${oldFiles.size} old files")
     oldFiles.removeAll(latestFiles)
 
